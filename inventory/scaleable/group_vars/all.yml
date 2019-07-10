@@ -1,0 +1,6 @@
+## Docker daemon settings
+docker_install_compose: false
+
+## Wordpress docker container settings
+container_name: wordpess
+container_image: wordpress:php7.1-fpm-alpine

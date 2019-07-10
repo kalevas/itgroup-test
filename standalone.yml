@@ -1,0 +1,25 @@
+---
+- hosts: all
+  tasks:
+    - name: Import secrets
+      include_vars:
+        file: "./inventory/secrets.yml"
+  tags: 
+    - always
+
+- hosts: all
+  become: true
+  roles:
+    - role: docker
+      tags:
+        - docker
+    - role: mysql
+      tags:
+        - mysql
+    - role: nginx
+      tags:
+        - nginx
+    - role: systemd
+      tags:
+        - fpm
+        - wp

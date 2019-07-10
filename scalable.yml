@@ -1,0 +1,36 @@
+---
+- hosts: all
+  tasks:
+    - name: Import secrets
+      include_vars:
+        file: "./inventory/secrets.yml"
+  tags: 
+    - always
+
+- hosts: mysql
+  become: true
+  roles:
+    - role: mysql
+      tags:
+        - mysql
+
+- hosts: fpm
+  become: true
+  roles:
+    - role: docker
+      docker_install_compose: false
+      tags:
+        - docker
+    - role: systemd
+      container_name: wordpess
+      container_image: wordpress:php7.1-fpm-alpine
+      tags:
+        - wp
+        - fpm
+
+- hosts: nginx
+  become: true
+  roles:
+    - role: nginx
+      tags:
+        - nginx

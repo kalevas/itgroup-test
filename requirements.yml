@@ -1,5 +1,8 @@
 - src: geerlingguy.mysql
   name: mysql
-- src: nginxinc.nginx
+- src: geerlingguy.nginx
   name: nginx
-
+- src: geerlingguy.docker
+  name: docker
+- src: mhutter.docker-systemd-service
+  name: systemd
