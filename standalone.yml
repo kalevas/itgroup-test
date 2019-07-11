@@ -4,6 +4,14 @@
     - name: Import secrets
       include_vars:
         file: "./inventory/secrets.yml"
+    - name: Set ips in group
+      set_fact:
+        fpm_backends: "{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$','\\1:9000')|list}}"
+
+    - name: Return upstreams
+      debug:
+        msg: "{{ fpm_backends }}"
+
   tags: 
     - always
 
@@ -16,10 +24,10 @@
     - role: mysql
       tags:
         - mysql
-    - role: nginx
-      tags:
-        - nginx
     - role: systemd
       tags:
         - fpm
         - wp
+    - role: nginx
+      tags:
+        - nginx
