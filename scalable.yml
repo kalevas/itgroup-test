@@ -4,6 +4,10 @@
     - name: Import secrets
       include_vars:
         file: "./inventory/secrets.yml"
+    - name: Set ips in group
+      set_fact:
+        fpm_backends: "{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$','\\1:9000')|list}}"
+        
   tags: 
     - always
 
