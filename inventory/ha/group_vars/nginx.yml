@@ -1,16 +1,4 @@
-## MySQL settings
-mysql_packages:
-  - python-mysql.connector
-
-## Docker daemon settings
-docker_install_compose: false
-
-## Wordpress docker container settings
-container_name: wordpess
-container_image: wordpress:php7.1-fpm-alpine
-container_ports:
-  - '9000:9000'
-
+---
 ## Nginx settings
 nginx_remove_default_vhost: true
 nginx_ppa_use: true

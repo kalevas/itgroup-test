@@ -1,8 +1,8 @@
 [fpm]
 vm1
+vm2
+vm3
 
 [mysql]
-vm1
-
-[nginx]
-vm1
+vm4
+vm5
