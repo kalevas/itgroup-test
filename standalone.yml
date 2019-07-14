@@ -11,23 +11,44 @@
     - name: Return upstreams
       debug:
         msg: "{{ fpm_backends }}"
-
   tags: 
     - always
 
-- hosts: all
+- hosts: mysql
   become: true
   roles:
-    - role: docker
-      tags:
-        - docker
     - role: mysql
       tags:
         - mysql
-    - role: systemd
+
+- hosts: fpm
+  become: true
+  pre_tasks:
+    - unarchive: 
+        src: "https://wordpress.org/latest.tar.gz"
+        dest: "/var/www"
+        remote_src: yes
+    - template:
+        src: "templates/wp-config.php.j2"
+        dest: "{{ wp_home }}/wp-config.php"
+  tags:
+    - wp
+  roles:
+    - role: php
       tags:
+        - php
         - fpm
         - wp
+  post_tasks:
+    - file:
+        path: "{{ wp_home }}"
+        owner: www-data
+        group: www-data
+        recurse: yes
+
+- hosts: nginx
+  become: true
+  roles:
     - role: nginx
       tags:
         - nginx

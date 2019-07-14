@@ -1,41 +1,38 @@
+## Wordpress settings
+wp_home: "/var/www/wordpress"
+wp_db_name: "wordpress"
+wp_db_user: "wpuser"
+wp_db_password: "{{ vault_mysql_wpuser_password }}"
+wp_db_host: "localhost"
+
 ## MySQL settings
 mysql_root_password: "{{ vault_mysql_root_password }}"
 mysql_databases:
-  - name: wordpress
+  - name: "{{ wp_db_name }}"
     encoding: utf8
     collation: utf8_general_ci
 mysql_users:
-  - name: wpuser
-    host: "%"
-    password: "{{ vault_mysql_wpuser_password }}"
+  - name: "{{ wp_db_user }}"
+    host: "localhost"
+    password: "{{ wp_db_password }}"
     priv: "wordpress.*:ALL"
 
-## Docker daemon settings
-docker_install_compose: false
+## PHP-FPM settings
+php_enable_php_fpm: true
 
-## Wordpress docker container settings
-container_name: wordpess
-container_image: wordpress:php7.1-fpm-alpine
-container_ports:
-  - '9000:9000'
-container_env:
-  WORDPRESS_DB_HOST: "10.2.141.51"
-  WORDPRESS_DB_USER: "wpuser"
-  WORDPRESS_DB_PASSWORD: "{{ vault_mysql_wpuser_password }}"
-  WORDPRESS_DB_NAME: "wordpress"
 ## Nginx settings
 nginx_remove_default_vhost: true
 nginx_ppa_use: true
 nginx_ppa_version: stable
 
-nginx_upstreams:
-- name: wordpress
-  servers: "{{ fpm_backends }}"
+# nginx_upstreams:
+# - name: wordpress
+#   servers: "{{ fpm_backends }}"
 
 nginx_vhosts:
   - listen: "80"
     server_name: "wordpress.local"
-    root: "/var/www/html"
+    root: "{{ wp_home }}"
     index: "index.php"
     access_log: "/var/log/nginx/wordpress_access.log"
     error_log: "/var/log/nginx/wordpress_error.log"
@@ -54,7 +51,8 @@ nginx_vhosts:
       location ~ \.php$ {
           try_files $uri =404;
           fastcgi_split_path_info ^(.+\.php)(/.+)$;
-          fastcgi_pass wordpress;
+          #fastcgi_pass unix:/var/run/php/php7.0-fpm.sock;
+          fastcgi_pass 127.0.0.1:9000;
           fastcgi_index index.php;
           include fastcgi_params;
           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
