@@ -1,6 +1,14 @@
 ## MySQL settings
-mysql_packages:
-  - python-mysql.connector
+mysql_root_password: "{{ vault_mysql_root_password }}"
+mysql_databases:
+  - name: wordpress
+    encoding: utf8
+    collation: utf8_general_ci
+mysql_users:
+  - name: wpuser
+    host: "%"
+    password: "{{ vault_mysql_wpuser_password }}"
+    priv: "wordpress.*:ALL"
 
 ## Docker daemon settings
 docker_install_compose: false
@@ -10,7 +18,11 @@ container_name: wordpess
 container_image: wordpress:php7.1-fpm-alpine
 container_ports:
   - '9000:9000'
-
+container_env:
+  WORDPRESS_DB_HOST: "10.2.141.51"
+  WORDPRESS_DB_USER: "wpuser"
+  WORDPRESS_DB_PASSWORD: "{{ vault_mysql_wpuser_password }}"
+  WORDPRESS_DB_NAME: "wordpress"
 ## Nginx settings
 nginx_remove_default_vhost: true
 nginx_ppa_use: true
@@ -35,26 +47,39 @@ nginx_vhosts:
       gzip_disable "msie6";
       gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
 
-      location ~ /\. {
-              deny all;
-      }
-
-      location ~* /(?:uploads|files)/.*\.php$ {
-              deny all;
-      }
-
-      location ~* ^.+\.(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|rss|atom|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf)$ {
-              access_log off;
-              log_not_found off;
-              expires max;
-      }
-
       location / {
-              try_files $uri /index.php?$args;
+          try_files $uri /index.php?$args;
       }
-
+  
       location ~ \.php$ {
-              fastcgi_pass wordpress;
-              fastcgi_index index.php;
-              include fastcgi_params;
+          try_files $uri =404;
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass wordpress;
+          fastcgi_index index.php;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_param PATH_INFO $fastcgi_path_info;
       }
+      # location ~ /\. {
+      #         deny all;
+      # }
+
+      # location ~* /(?:uploads|files)/.*\.php$ {
+      #         deny all;
+      # }
+
+      # location ~* ^.+\.(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|rss|atom|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf)$ {
+      #         access_log off;
+      #         log_not_found off;
+      #         expires max;
+      # }
+
+      # location / {
+      #         try_files $uri /index.php?$args;
+      # }
+
+      # location ~ \.php$ {
+      #         fastcgi_pass wordpress;
+      #         fastcgi_index index.php;
+      #         include fastcgi_params;
+      # }
