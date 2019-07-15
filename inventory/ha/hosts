@@ -1,8 +1,16 @@
-[fpm]
-vm1
-vm2
-vm3
+[mysql:children]
+master
+slave
 
-[mysql]
+[master]
 vm4
+
+[slave]
 vm5
+
+# [fpm]
+# vm1
+# vm2
+
+# [nginx]
+# vm1

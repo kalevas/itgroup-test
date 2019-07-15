@@ -5,25 +5,25 @@
       include_vars:
         file: "./inventory/secrets.yml"
 
-    - name: Set php-fpm backends ip addresses amd port
-      set_fact:
-        fpm_backends: "{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$','\\1:9000')|list}}"
+    # - name: Set php-fpm backends ip addresses amd port
+    #   set_fact:
+    #     fpm_backends: "{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$','\\1:9000')|list}}"
 
-    - name: Set php-fpm backends ip addresses
-      set_fact:
-        fpm_allowed_ip: "127.0.0.1,{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|join(',')}}"
+    # - name: Set php-fpm backends ip addresses
+    #   set_fact:
+    #     fpm_allowed_ip: "127.0.0.1,{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|join(',')}}"
 
-    - name: Set MySQL ip address
-      set_fact:
-        mysql_ip: "{{ groups['mysql'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|list}}"
+    # - name: Set MySQL ip address
+    #   set_fact:
+    #     mysql_ip: "{{ groups['mysql'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|list}}"
 
-    - name: Return backend ip address + port
-      debug:
-        msg: "{{ fpm_backends }}"
+    # - name: Return backend ip address + port
+    #   debug:
+    #     msg: "{{ fpm_backends }}"
 
-    - name: Return MySQL ip addresse
-      debug:
-        msg: "{{ mysql_ip }}"
+    # - name: Return MySQL ip addresse
+    #   debug:
+    #     msg: "{{ mysql_ip }}"
   tags: 
     - always
     - ips
@@ -35,37 +35,37 @@
       tags:
         - mysql
 
-- hosts: fpm
-  become: true
-  pre_tasks:
-    - file:
-        path: "{{ wp_home }}"
-        state: directory
-    - unarchive: 
-        src: "https://wordpress.org/latest.tar.gz"
-        dest: "/var/www"
-        remote_src: yes
-    - template:
-        src: "templates/wp-config.php.j2"
-        dest: "{{ wp_home }}/wp-config.php"
-  tags:
-    - wp
-  roles:
-    - role: php
-      tags:
-        - php
-        - fpm
-        - wp
-  post_tasks:
-    - file:
-        path: "{{ wp_home }}"
-        owner: www-data
-        group: www-data
-        recurse: yes
+# - hosts: fpm
+#   become: true
+#   pre_tasks:
+#     - file:
+#         path: "{{ wp_home }}"
+#         state: directory
+#     - unarchive: 
+#         src: "https://wordpress.org/latest.tar.gz"
+#         dest: "/var/www"
+#         remote_src: yes
+#     - template:
+#         src: "templates/wp-config.php.j2"
+#         dest: "{{ wp_home }}/wp-config.php"
+#   tags:
+#     - wp
+#   roles:
+#     - role: php
+#       tags:
+#         - php
+#         - fpm
+#         - wp
+#   post_tasks:
+#     - file:
+#         path: "{{ wp_home }}"
+#         owner: www-data
+#         group: www-data
+#         recurse: yes
 
-- hosts: nginx
-  become: true
-  roles:
-    - role: nginx
-      tags:
-        - nginx
+# - hosts: nginx
+#   become: true
+#   roles:
+#     - role: nginx
+#       tags:
+#         - nginx
