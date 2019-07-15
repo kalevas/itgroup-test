@@ -3,7 +3,7 @@ wp_home: "/var/www/wordpress"
 wp_db_name: "wordpress"
 wp_db_user: "wpuser"
 wp_db_password: "{{ vault_mysql_wpuser_password }}"
-wp_db_host: "localhost"
+wp_db_host: "{{ mysql_ip[0] }}"
 
 ## MySQL settings
 mysql_root_password: "{{ vault_mysql_root_password }}"
@@ -16,12 +16,16 @@ mysql_users:
     host: "localhost"
     password: "{{ wp_db_password }}"
     priv: "wordpress.*:ALL"
+  - name: "{{ wp_db_user }}"
+    host: "%"
+    password: "{{ wp_db_password }}"
+    priv: "wordpress.*:ALL"
 
 ## PHP-FPM settings
 php_enable_webserver: false
 php_enable_php_fpm: true
 php_fpm_listen: "0.0.0.0:9000"
-php_fpm_listen_allowed_clients: "0.0.0.0"
+php_fpm_listen_allowed_clients: "{{ fpm_allowed_ip }}"
 php_packages_extra:
   - php-mysql
 

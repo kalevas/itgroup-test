@@ -4,16 +4,30 @@
     - name: Import secrets
       include_vars:
         file: "./inventory/secrets.yml"
-    - name: Set ips in group
+
+    - name: Set php-fpm backends ip addresses amd port
       set_fact:
         fpm_backends: "{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|map('regex_replace', '^(.*)$','\\1:9000')|list}}"
 
-    - name: Return upstreams
+    - name: Set php-fpm backends ip addresses
+      set_fact:
+        fpm_allowed_ip: "127.0.0.1,{{ groups['fpm'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|join(',')}}"
+
+    - name: Set MySQL ip address
+      set_fact:
+        mysql_ip: "{{ groups['mysql'] | map('extract', hostvars, ['ansible_default_ipv4', 'address'])|list}}"
+
+    - name: Return backend ip address + port
       debug:
         msg: "{{ fpm_backends }}"
+
+    - name: Return MySQL ip addresse
+      debug:
+        msg: "{{ mysql_ip }}"
   tags: 
     - always
-
+    - ips
+    
 - hosts: mysql
   become: true
   roles:
@@ -24,6 +38,9 @@
 - hosts: fpm
   become: true
   pre_tasks:
+    - file:
+        path: "{{ wp_home }}"
+        state: directory
     - unarchive: 
         src: "https://wordpress.org/latest.tar.gz"
         dest: "/var/www"

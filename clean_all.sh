@@ -5,4 +5,4 @@ dpkg -l | grep 'mysql\|docker\|php\|nginx'| \
           xargs apt remove -y --purge && \
           apt autoremove --purge -y && \
           apt autoclean && \
-          rm -rf /var/lib/mysql* /etc/nginx /etc/mysql /var/www/*
+          rm -rf /var/lib/mysql* /etc/nginx /etc/php /etc/mysql /var/www/*
