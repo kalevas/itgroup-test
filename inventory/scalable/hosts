@@ -1,6 +1,9 @@
+[mysql]
+vm4
+
 [fpm]
 vm1
 vm2
 
-[mysql]
-vm4
+[nginx]
+vm1
