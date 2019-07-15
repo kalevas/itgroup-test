@@ -4,3 +4,6 @@
   name: nginx
 - src: geerlingguy.php
   name: php
+- src: https://github.com/evrardjp/ansible-keepalived.git
+  version: master
+  name: keepalived

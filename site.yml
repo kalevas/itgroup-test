@@ -19,10 +19,13 @@
       when:
         - env != "ha"
 
+    - name: Return backend ip address + port
+      debug:
+        msg: "{{ fpm_backends }}"
   tags: 
     - always
     - ips
-    
+
 - hosts: mysql
   become: true
   roles:
@@ -64,3 +67,7 @@
     - role: nginx
       tags:
         - nginx
+    - role: keepalived
+      tags:
+        - keepalived
+      

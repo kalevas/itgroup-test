@@ -7,6 +7,25 @@ wp_db_user: "wpuser"
 wp_db_password: "{{ vault_mysql_wpuser_password }}"
 wp_db_host: "{{ mysql_replication_master }}"
 
+## Keepalived settings
+nginx_vip: "10.2.141.101"
+mysql_vip: "10.2.141.102"
+
+vrrp_nic: "ens192"
+
+keepalived_sync_groups:
+  nginx:
+    instances:
+      - internal
+keepalived_instances:
+  internal:
+    interface: "{{ vrrp_nic }}"
+    state: "{{ (groups['all'].index(inventory_hostname) == 0) | ternary('MASTER','BACKUP') }}"
+    virtual_router_id: 42
+    priority: "{{ (groups['all']|length - groups['all'].index(inventory_hostname)) * 250 // (groups['all']|length) }}"
+    vips:
+      - "10.2.141.101/24 dev {{ vrrp_nic }}"
+
 ## MySQL settings
 mysql_root_password: "{{ vault_mysql_root_password }}"
 
@@ -15,7 +34,7 @@ mysql_replication_master: '10.2.141.54'
 mysql_replication_user:
   name: "replicator"
   host: "%"
-  password: "TugoaBo1ooChah8Ve2Me7sochaeFah"
+  password: "{{ vault_mysql_replication_password }}"
 
 mysql_databases:
   - name: "{{ wp_db_name }}"
