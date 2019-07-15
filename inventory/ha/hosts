@@ -8,9 +8,9 @@ vm4
 [slave]
 vm5
 
-# [fpm]
-# vm1
-# vm2
+[fpm]
+vm1
+vm2
 
-# [nginx]
-# vm1
+[nginx]
+vm1
