@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dpkg -l | grep 'mysql\|docker\|php\|nginx'| \
+dpkg -l | grep 'mysql\|docker\|php\|nginx\|keepalived'| \
           awk '{print $2}'| \
           xargs apt remove -y --purge && \
           apt autoremove --purge -y && \
