@@ -1,0 +1,48 @@
+---
+## Keepalived settings
+keepalived_sync_groups:
+  mysql:
+    instances:
+      - internal
+    notify_script: "mysql -Bse 'stop slave;reset slave all;'"
+keepalived_instances:
+  internal:
+    interface: "{{ vrrp_nic }}"
+    state: "{{ (groups['all'].index(inventory_hostname) == 0) | ternary('MASTER','BACKUP') }}"
+    virtual_router_id: 43
+    priority: "{{ (groups['all']|length - groups['all'].index(inventory_hostname)) * 250 // (groups['all']|length) }}"
+    nopreempt: true
+    vips:
+      - "{{ mysql_vip }}/24 dev {{ vrrp_nic }}"
+
+
+## MySQL settings
+mysql_packages:
+  - mysql-common
+  - mysql-server
+  - python-mysql.connector
+  
+mysql_root_password: "{{ vault_mysql_root_password }}"
+
+mysql_replication_master: '10.2.141.54'
+
+mysql_replication_user:
+  name: "replicator"
+  host: "%"
+  password: "{{ vault_mysql_replication_password }}"
+
+mysql_databases:
+  - name: "{{ wp_db_name }}"
+    encoding: utf8
+    collation: utf8_general_ci
+    replicate: 1
+
+mysql_users:
+  - name: "{{ wp_db_user }}"
+    host: "localhost"
+    password: "{{ wp_db_password }}"
+    priv: "wordpress.*:ALL"
+  - name: "{{ wp_db_user }}"
+    host: "%"
+    password: "{{ wp_db_password }}"
+    priv: "wordpress.*:ALL"

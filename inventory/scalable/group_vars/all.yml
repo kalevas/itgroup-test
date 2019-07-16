@@ -8,6 +8,11 @@ wp_db_password: "{{ vault_mysql_wpuser_password }}"
 wp_db_host: "{{ mysql_ip[0] }}"
 
 ## MySQL settings
+mysql_packages:
+  - mysql-common
+  - mysql-server
+  - python-mysql.connector
+  
 mysql_root_password: "{{ vault_mysql_root_password }}"
 mysql_databases:
   - name: "{{ wp_db_name }}"

@@ -1,56 +1,16 @@
 env: "ha"
 
+## Keepalived common settings
+nginx_vip: "10.2.141.101"
+mysql_vip: "10.2.141.102"
+vrrp_nic: "ens192"
+
 ## Wordpress settings
 wp_home: "/var/www/wordpress"
 wp_db_name: "wordpress"
 wp_db_user: "wpuser"
 wp_db_password: "{{ vault_mysql_wpuser_password }}"
-wp_db_host: "{{ mysql_replication_master }}"
-
-## Keepalived settings
-nginx_vip: "10.2.141.101"
-mysql_vip: "10.2.141.102"
-
-vrrp_nic: "ens192"
-
-keepalived_sync_groups:
-  nginx:
-    instances:
-      - internal
-keepalived_instances:
-  internal:
-    interface: "{{ vrrp_nic }}"
-    state: "{{ (groups['all'].index(inventory_hostname) == 0) | ternary('MASTER','BACKUP') }}"
-    virtual_router_id: 42
-    priority: "{{ (groups['all']|length - groups['all'].index(inventory_hostname)) * 250 // (groups['all']|length) }}"
-    vips:
-      - "10.2.141.101/24 dev {{ vrrp_nic }}"
-
-## MySQL settings
-mysql_root_password: "{{ vault_mysql_root_password }}"
-
-mysql_replication_master: '10.2.141.54'
-
-mysql_replication_user:
-  name: "replicator"
-  host: "%"
-  password: "{{ vault_mysql_replication_password }}"
-
-mysql_databases:
-  - name: "{{ wp_db_name }}"
-    encoding: utf8
-    collation: utf8_general_ci
-    replicate: 1
-
-mysql_users:
-  - name: "{{ wp_db_user }}"
-    host: "localhost"
-    password: "{{ wp_db_password }}"
-    priv: "wordpress.*:ALL"
-  - name: "{{ wp_db_user }}"
-    host: "%"
-    password: "{{ wp_db_password }}"
-    priv: "wordpress.*:ALL"
+wp_db_host: "{{ mysql_vip }}"
 
 ## PHP-FPM settings
 php_enable_webserver: false
@@ -59,64 +19,3 @@ php_fpm_listen: "0.0.0.0:9000"
 php_fpm_listen_allowed_clients: "{{ fpm_allowed_ip }}"
 php_packages_extra:
   - php-mysql
-
-## Nginx settings
-nginx_remove_default_vhost: true
-nginx_ppa_use: true
-nginx_ppa_version: stable
-
-nginx_upstreams:
-  - name: wordpress
-    servers: "{{ fpm_backends }}"
-
-nginx_vhosts:
-  - listen: "80"
-    server_name: "wordpress.local"
-    root: "{{ wp_home }}"
-    index: "index.php"
-    access_log: "/var/log/nginx/wordpress_access.log"
-    error_log: "/var/log/nginx/wordpress_error.log"
-    state: "present"
-    template: "{{ nginx_vhost_template }}"
-    filename: "wordpress.conf"
-    extra_parameters: |
-      gzip on; 
-      gzip_disable "msie6";
-      gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
-
-      location / {
-          try_files $uri /index.php?$args;
-      }
-  
-      location ~ \.php$ {
-          try_files $uri =404;
-          fastcgi_split_path_info ^(.+\.php)(/.+)$;
-          fastcgi_pass wordpress;
-          fastcgi_index index.php;
-          include fastcgi_params;
-          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-          fastcgi_param PATH_INFO $fastcgi_path_info;
-      }
-      # location ~ /\. {
-      #         deny all;
-      # }
-
-      # location ~* /(?:uploads|files)/.*\.php$ {
-      #         deny all;
-      # }
-
-      # location ~* ^.+\.(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|rss|atom|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf)$ {
-      #         access_log off;
-      #         log_not_found off;
-      #         expires max;
-      # }
-
-      # location / {
-      #         try_files $uri /index.php?$args;
-      # }
-
-      # location ~ \.php$ {
-      #         fastcgi_pass wordpress;
-      #         fastcgi_index index.php;
-      #         include fastcgi_params;
-      # }

@@ -1,0 +1,52 @@
+---
+## Keepalived settings
+keepalived_sync_groups:
+  nginx:
+    instances:
+      - internal
+keepalived_instances:
+  internal:
+    interface: "{{ vrrp_nic }}"
+    state: "{{ (groups['all'].index(inventory_hostname) == 0) | ternary('MASTER','BACKUP') }}"
+    virtual_router_id: 42
+    priority: "{{ (groups['all']|length - groups['all'].index(inventory_hostname)) * 250 // (groups['all']|length) }}"
+    vips:
+      - "{{ nginx_vip }}/24 dev {{ vrrp_nic }}"
+
+## Nginx settings
+nginx_remove_default_vhost: true
+nginx_ppa_use: true
+nginx_ppa_version: stable
+
+nginx_upstreams:
+  - name: wordpress
+    servers: "{{ fpm_backends }}"
+
+nginx_vhosts:
+  - listen: "80"
+    server_name: "wordpress.local"
+    root: "{{ wp_home }}"
+    index: "index.php"
+    access_log: "/var/log/nginx/wordpress_access.log"
+    error_log: "/var/log/nginx/wordpress_error.log"
+    state: "present"
+    template: "{{ nginx_vhost_template }}"
+    filename: "wordpress.conf"
+    extra_parameters: |
+      gzip on; 
+      gzip_disable "msie6";
+      gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+
+      location / {
+          try_files $uri /index.php?$args;
+      }
+  
+      location ~ \.php$ {
+          try_files $uri =404;
+          fastcgi_split_path_info ^(.+\.php)(/.+)$;
+          fastcgi_pass wordpress;
+          fastcgi_index index.php;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_param PATH_INFO $fastcgi_path_info;
+      }

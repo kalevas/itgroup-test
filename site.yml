@@ -32,6 +32,9 @@
     - role: mysql
       tags:
         - mysql
+    - role: keepalived
+      tags:
+        - keepalived
 
 - hosts: fpm
   become: true
